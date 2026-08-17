@@ -1,8 +1,6 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 type OrdemServico struct {
 	ID            int       `json:"id"`

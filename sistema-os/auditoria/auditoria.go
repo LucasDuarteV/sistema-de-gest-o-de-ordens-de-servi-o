@@ -29,7 +29,7 @@ func OSCriada(id int) {
 }
 
 func OSAtualizada(id int) {
-	go Registrar(fmt.Sprintf("OS %d criada", id))
+	go Registrar(fmt.Sprintf("OS %d atualizada", id))
 }
 
 func OSDeletada(id int) {

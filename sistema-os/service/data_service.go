@@ -3,8 +3,29 @@ package service
 import "time"
 
 func CalcularDiasRestantes(dataEntrega time.Time) int {
-	diferenca := dataEntrega.Sub(time.Now())
-	dias := int(diferenca.Hours() / 24)
+	hoje := time.Now()
 
-	return dias
+	inicioHoje := time.Date(
+		hoje.Year(),
+		hoje.Month(),
+		hoje.Day(),
+		0,
+		0,
+		0,
+		0,
+		hoje.Location(),
+	)
+
+	inicioEntrega := time.Date(
+		dataEntrega.Year(),
+		dataEntrega.Month(),
+		dataEntrega.Day(),
+		0,
+		0,
+		0,
+		0,
+		hoje.Location(),
+	)
+
+	return int(inicioEntrega.Sub(inicioHoje).Hours() / 24)
 }
