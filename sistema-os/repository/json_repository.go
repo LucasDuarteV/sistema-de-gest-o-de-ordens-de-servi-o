@@ -78,65 +78,65 @@ func (r JSONRepositorio) BuscarPorID(id int) (*models.OrdemServico, error) {
 	return nil, fmt.Errorf("OS com ID %d não encontrada", id)
 }
 
-func (r JSONRepositorio) Atualizar(ordem *models.OrdemServico) error{
+func (r JSONRepositorio) Atualizar(ordem *models.OrdemServico) error {
 	dados, err := os.ReadFile(r.Arquivo)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	var ordens []models.OrdemServico
 
-	err = json.Unmarshal(dados,&ordens)
-	if err != nil{
+	err = json.Unmarshal(dados, &ordens)
+	if err != nil {
 		return err
 	}
 
-	for i := range ordens{
-		if ordens[i].ID == ordem.ID{
+	for i := range ordens {
+		if ordens[i].ID == ordem.ID {
 			ordens[i] = *ordem
 		}
 	}
-	
+
 	dados, err = json.Marshal(ordens)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(r.Arquivo,dados,0644)
-	if err != nil{
+	err = os.WriteFile(r.Arquivo, dados, 0644)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r JSONRepositorio) Deletar(id int) error{
+func (r JSONRepositorio) Deletar(id int) error {
 	dados, err := os.ReadFile(r.Arquivo)
-		if err != nil{
-			return err
-		}
-
-	var ordens []models.OrdemServico
-	
-	err = json.Unmarshal(dados,&ordens)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	for i := range ordens{
-		if ordens[i].ID == id{
+	var ordens []models.OrdemServico
+
+	err = json.Unmarshal(dados, &ordens)
+	if err != nil {
+		return err
+	}
+
+	for i := range ordens {
+		if ordens[i].ID == id {
 			ordens = append(ordens[:i], ordens[i+1:]...)
 			break
 		}
 	}
 
 	dados, err = json.Marshal(ordens)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(r.Arquivo,dados,0644)
-	if err != nil{
+	err = os.WriteFile(r.Arquivo, dados, 0644)
+	if err != nil {
 		return err
 	}
 
