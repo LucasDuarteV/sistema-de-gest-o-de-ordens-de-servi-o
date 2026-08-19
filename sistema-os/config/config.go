@@ -15,7 +15,12 @@ type Config struct {
 }
 
 func Carregar() Config {
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		err = godotenv.Load("../.env")
+	}
+
 	if err != nil {
 		panic("Erro ao carregar o arquivo .env")
 	}
