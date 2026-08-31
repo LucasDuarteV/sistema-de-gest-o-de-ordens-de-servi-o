@@ -4,19 +4,22 @@ import (
 	"testing"
 
 	"sistema-os/config"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestConectar(t *testing.T) {
 	cfg := config.Carregar()
 
 	conn, err := Conectar(cfg)
-	if err != nil {
-		t.Fatalf("erro ao conectar no banco: %v", err)
-	}
+
+	require.NoError(t, err, "Erro ao conectar ao banco de dados")
+	require.NotNil(t, conn, "Conexão com o banco de dados é nula")
 
 	defer conn.Close(t.Context())
 
-	if err := conn.Ping(t.Context()); err != nil {
-		t.Fatalf("erro ao testar conexão: %v", err)
-	}
+	err = conn.Ping(t.Context())
+
+	require.NoError(t, err, "Erro ao testar conexão com o banco de dados")
+
 }

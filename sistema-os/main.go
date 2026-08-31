@@ -1,10 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
+
 	"sistema-os/cli"
 	"sistema-os/config"
 	"sistema-os/database"
@@ -17,18 +17,26 @@ func main() {
 
 	cfg := config.Carregar()
 
-	conn, err := database.Conectar(cfg)
+	db, err := database.ConectarMySQL(cfg)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	defer conn.Close(context.Background())
+	defer db.Close()
 
-	fmt.Println("Conectando ao PostgreSQL com sucesso!")
+	fmt.Println("Conectando ao MySQL com sucesso!")
 
-	repo := repository.PostgresRepositorio{
-		Conn: conn,
+	err = database.CriarTabelasMySQL(db)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Tabela ordens_servico verificada com sucesso!")
+
+	repo := repository.MySQLRepositorio{
+		DB: db,
 	}
 
 	servico := service.OrdemServicoService{

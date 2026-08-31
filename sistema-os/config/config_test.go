@@ -1,27 +1,24 @@
 package config
 
-import "testing"
+import (
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestCarregar(t *testing.T) {
-	config := Carregar()
+	os.Setenv("POSTGRES_USER", "postgres")
+	os.Setenv("POSTGRES_PASSWORD", "123456")
+	os.Setenv("POSTGRES_DB", "sistema_os")
+	os.Setenv("POSTGRES_HOST", "localhost")
+	os.Setenv("POSTGRES_PORT", "5433")
 
-	if config.PostgresUser == "" {
-		t.Error("POSTGRES_USER não foi carregado")
-	}
+	cfg := Carregar()
 
-	if config.PostgresPassword == "" {
-		t.Error("POSTGRES_PASSWORD não foi carregado")
-	}
-
-	if config.PostgresDB == "" {
-		t.Error("POSTGRES_DB não foi carregado")
-	}
-
-	if config.PostgresHost == "" {
-		t.Error("POSTGRES_HOST não foi carregado")
-	}
-
-	if config.PostgresPort == "" {
-		t.Error("POSTGRES_PORT não foi carregado")
-	}
+	assert.Equal(t, "postgres", cfg.PostgresUser)
+	assert.Equal(t, "123456", cfg.PostgresPassword)
+	assert.Equal(t, "sistema_os", cfg.PostgresDB)
+	assert.Equal(t, "localhost", cfg.PostgresHost)
+	assert.Equal(t, "5433", cfg.PostgresPort)
 }

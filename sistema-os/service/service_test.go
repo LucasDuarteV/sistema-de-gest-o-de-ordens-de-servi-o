@@ -6,12 +6,18 @@ import (
 	"time"
 
 	"sistema-os/models"
+	"sistema-os/repository"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type BancoRepositorioMock struct {
 	ordens        []*models.OrdemServico
 	salvarChamado bool
 }
+
+var _ repository.Repositorio = (*BancoRepositorioMock)(nil)
 
 func (m *BancoRepositorioMock) Salvar(ordem *models.OrdemServico) error {
 	m.salvarChamado = true
@@ -37,6 +43,18 @@ func (m *BancoRepositorioMock) BuscarPorID(id int) (*models.OrdemServico, error)
 	}
 
 	return nil, errors.New("OS não encontrada")
+}
+
+func (m *BancoRepositorioMock) BuscarPorCliente(cliente string) ([]*models.OrdemServico, error) {
+	var ordens []*models.OrdemServico
+
+	for _, ordem := range m.ordens {
+		if ordem.Cliente == cliente {
+			ordens = append(ordens, ordem)
+		}
+	}
+
+	return ordens, nil
 }
 
 func (m *BancoRepositorioMock) Atualizar(ordem *models.OrdemServico) error {
@@ -83,17 +101,9 @@ func TestSalvarSucesso(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err != nil {
-		t.Fatalf("esperava nenhum erro, recebeu: %v", err)
-	}
-
-	if !repositorio.salvarChamado {
-		t.Error("esperava que Salvar fosse chamado")
-	}
-
-	if ordem.ID == 0 {
-		t.Error("esperava que a OS recebesse um ID")
-	}
+	require.NoError(t, err)
+	assert.True(t, repositorio.salvarChamado)
+	assert.NotZero(t, ordem.ID)
 }
 
 func TestSalvarOSNula(t *testing.T) {
@@ -105,9 +115,7 @@ func TestSalvarOSNula(t *testing.T) {
 
 	err := servico.Salvar(nil)
 
-	if err == nil {
-		t.Error("esperava erro ao salvar OS nula")
-	}
+	assert.Error(t, err)
 }
 
 func TestSalvarClienteVazio(t *testing.T) {
@@ -122,9 +130,7 @@ func TestSalvarClienteVazio(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro para cliente vazio")
-	}
+	assert.Error(t, err)
 }
 
 func TestSalvarDescricaoVazia(t *testing.T) {
@@ -139,9 +145,7 @@ func TestSalvarDescricaoVazia(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro para descrição vazia")
-	}
+	assert.Error(t, err)
 }
 
 func TestSalvarValorEstimadoNegativo(t *testing.T) {
@@ -156,9 +160,7 @@ func TestSalvarValorEstimadoNegativo(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro para valor estimado negativo")
-	}
+	assert.Error(t, err)
 }
 
 func TestSalvarValorFinalNegativo(t *testing.T) {
@@ -173,9 +175,7 @@ func TestSalvarValorFinalNegativo(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro para valor final negativo")
-	}
+	assert.Error(t, err)
 }
 
 func TestSalvarDataEntregaVazia(t *testing.T) {
@@ -190,9 +190,7 @@ func TestSalvarDataEntregaVazia(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro para data vazia")
-	}
+	assert.Error(t, err)
 }
 
 func TestSalvarDataEntregaAnterior(t *testing.T) {
@@ -207,9 +205,7 @@ func TestSalvarDataEntregaAnterior(t *testing.T) {
 
 	err := servico.Salvar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro para data anterior")
-	}
+	assert.Error(t, err)
 }
 
 func TestBuscarPorIDInvalido(t *testing.T) {
@@ -221,9 +217,7 @@ func TestBuscarPorIDInvalido(t *testing.T) {
 
 	_, err := servico.BuscarPorID(0)
 
-	if err == nil {
-		t.Error("esperava erro para ID inválido")
-	}
+	assert.Error(t, err)
 }
 
 func TestBuscarPorID(t *testing.T) {
@@ -242,13 +236,11 @@ func TestBuscarPorID(t *testing.T) {
 
 	ordem, err := servico.BuscarPorID(1)
 
-	if err != nil {
-		t.Fatalf("esperava nenhum erro, recebeu: %v", err)
-	}
+	require.NoError(t, err)
+	require.NotNil(t, ordem)
 
-	if ordem.Cliente != "Lucas" {
-		t.Errorf("esperava cliente Lucas, recebeu %s", ordem.Cliente)
-	}
+	assert.Equal(t, 1, ordem.ID)
+	assert.Equal(t, "Lucas", ordem.Cliente)
 }
 
 func TestDeletarIDInvalido(t *testing.T) {
@@ -260,9 +252,7 @@ func TestDeletarIDInvalido(t *testing.T) {
 
 	err := servico.Deletar(0)
 
-	if err == nil {
-		t.Error("esperava erro para ID inválido")
-	}
+	assert.Error(t, err)
 }
 
 func TestDeletar(t *testing.T) {
@@ -281,13 +271,8 @@ func TestDeletar(t *testing.T) {
 
 	err := servico.Deletar(1)
 
-	if err != nil {
-		t.Fatalf("esperava nenhum erro, recebeu: %v", err)
-	}
-
-	if len(repositorio.ordens) != 0 {
-		t.Error("esperava que a OS fosse deletada")
-	}
+	require.NoError(t, err)
+	assert.Empty(t, repositorio.ordens)
 }
 
 func TestCalcularDiasRestantes(t *testing.T) {
@@ -295,7 +280,5 @@ func TestCalcularDiasRestantes(t *testing.T) {
 
 	dias := CalcularDiasRestantes(amanha)
 
-	if dias != 1 {
-		t.Errorf("esperava 1 dia, recebeu %d", dias)
-	}
+	assert.Equal(t, 1, dias)
 }

@@ -8,6 +8,8 @@ import (
 	"sistema-os/models"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func conectarBancoTeste(t *testing.T) *pgx.Conn {
@@ -18,9 +20,7 @@ func conectarBancoTeste(t *testing.T) *pgx.Conn {
 		"postgres://postgres:123456@127.0.0.1:5433/sistema_os",
 	)
 
-	if err != nil {
-		t.Fatalf("erro ao conectar no PostgreSQL: %v", err)
-	}
+	require.NoError(t, err, "erro ao conectar no PostgreSQL")
 
 	t.Cleanup(func() {
 		conn.Close(context.Background())
@@ -48,13 +48,8 @@ func TestPostgresSalvar(t *testing.T) {
 
 	err := repo.Salvar(ordem)
 
-	if err != nil {
-		t.Fatalf("erro ao salvar OS: %v", err)
-	}
-
-	if ordem.ID <= 0 {
-		t.Errorf("esperava ID maior que zero, recebeu %d", ordem.ID)
-	}
+	require.NoError(t, err, "erro ao salvar OS")
+	assert.Greater(t, ordem.ID, 0, "esperava ID maior que zero")
 
 	t.Cleanup(func() {
 		repo.Deletar(ordem.ID)
@@ -67,13 +62,8 @@ func TestPostgresListar(t *testing.T) {
 
 	ordens, err := repo.Listar()
 
-	if err != nil {
-		t.Fatalf("erro ao listar OS: %v", err)
-	}
-
-	if ordens == nil {
-		t.Error("esperava lista de OS, recebeu nil")
-	}
+	require.NoError(t, err, "erro ao listar OS")
+	assert.NotNil(t, ordens, "esperava lista de OS, recebeu nil")
 }
 
 func TestPostgresBuscarPorID(t *testing.T) {
@@ -84,9 +74,7 @@ func TestPostgresBuscarPorID(t *testing.T) {
 
 	err := repo.Salvar(ordem)
 
-	if err != nil {
-		t.Fatalf("erro ao criar OS para teste: %v", err)
-	}
+	require.NoError(t, err, "erro ao criar OS para teste")
 
 	t.Cleanup(func() {
 		repo.Deletar(ordem.ID)
@@ -94,24 +82,11 @@ func TestPostgresBuscarPorID(t *testing.T) {
 
 	resultado, err := repo.BuscarPorID(ordem.ID)
 
-	if err != nil {
-		t.Fatalf("erro ao buscar OS: %v", err)
-	}
+	require.NoError(t, err, "erro ao buscar OS")
+	require.NotNil(t, resultado, "resultado não deveria ser nil")
 
-	if resultado.ID != ordem.ID {
-		t.Errorf(
-			"esperava ID %d, recebeu %d",
-			ordem.ID,
-			resultado.ID,
-		)
-	}
-
-	if resultado.Cliente != "TESTE" {
-		t.Errorf(
-			"esperava cliente TESTE, recebeu %s",
-			resultado.Cliente,
-		)
-	}
+	assert.Equal(t, ordem.ID, resultado.ID)
+	assert.Equal(t, "TESTE", resultado.Cliente)
 }
 
 func TestPostgresBuscarPorIDInexistente(t *testing.T) {
@@ -120,9 +95,7 @@ func TestPostgresBuscarPorIDInexistente(t *testing.T) {
 
 	_, err := repo.BuscarPorID(999999)
 
-	if err == nil {
-		t.Error("esperava erro ao buscar OS inexistente")
-	}
+	assert.Error(t, err, "esperava erro ao buscar OS inexistente")
 }
 
 func TestPostgresAtualizar(t *testing.T) {
@@ -133,9 +106,7 @@ func TestPostgresAtualizar(t *testing.T) {
 
 	err := repo.Salvar(ordem)
 
-	if err != nil {
-		t.Fatalf("erro ao criar OS para teste: %v", err)
-	}
+	require.NoError(t, err, "erro ao criar OS para teste")
 
 	t.Cleanup(func() {
 		repo.Deletar(ordem.ID)
@@ -149,36 +120,18 @@ func TestPostgresAtualizar(t *testing.T) {
 
 	err = repo.Atualizar(ordem)
 
-	if err != nil {
-		t.Fatalf("erro ao atualizar OS: %v", err)
-	}
+	require.NoError(t, err, "erro ao atualizar OS")
 
 	atualizada, err := repo.BuscarPorID(ordem.ID)
 
-	if err != nil {
-		t.Fatalf("erro ao buscar OS atualizada: %v", err)
-	}
+	require.NoError(t, err, "erro ao buscar OS atualizada")
+	require.NotNil(t, atualizada)
 
-	if atualizada.Cliente != "TESTE ATUALIZADO" {
-		t.Errorf(
-			"esperava cliente TESTE ATUALIZADO, recebeu %s",
-			atualizada.Cliente,
-		)
-	}
-
-	if atualizada.ValorEstimado != 250.00 {
-		t.Errorf(
-			"esperava valor 250.00, recebeu %.2f",
-			atualizada.ValorEstimado,
-		)
-	}
-
-	if atualizada.Status != "Concluída" {
-		t.Errorf(
-			"esperava status Concluída, recebeu %s",
-			atualizada.Status,
-		)
-	}
+	assert.Equal(t, "TESTE ATUALIZADO", atualizada.Cliente)
+	assert.Equal(t, "Descrição atualizada", atualizada.Descricao)
+	assert.Equal(t, 250.00, atualizada.ValorEstimado)
+	assert.Equal(t, "Concluída", atualizada.Status)
+	assert.Equal(t, 200.00, atualizada.ValorFinal)
 }
 
 func TestPostgresAtualizarInexistente(t *testing.T) {
@@ -190,9 +143,7 @@ func TestPostgresAtualizarInexistente(t *testing.T) {
 
 	err := repo.Atualizar(ordem)
 
-	if err == nil {
-		t.Error("esperava erro ao atualizar OS inexistente")
-	}
+	assert.Error(t, err, "esperava erro ao atualizar OS inexistente")
 }
 
 func TestPostgresDeletar(t *testing.T) {
@@ -203,21 +154,15 @@ func TestPostgresDeletar(t *testing.T) {
 
 	err := repo.Salvar(ordem)
 
-	if err != nil {
-		t.Fatalf("erro ao criar OS para teste: %v", err)
-	}
+	require.NoError(t, err, "erro ao criar OS para teste")
 
 	err = repo.Deletar(ordem.ID)
 
-	if err != nil {
-		t.Fatalf("erro ao deletar OS: %v", err)
-	}
+	require.NoError(t, err, "erro ao deletar OS")
 
 	_, err = repo.BuscarPorID(ordem.ID)
 
-	if err == nil {
-		t.Error("esperava erro ao buscar OS deletada")
-	}
+	assert.Error(t, err, "esperava erro ao buscar OS deletada")
 }
 
 func TestPostgresDeletarInexistente(t *testing.T) {
@@ -226,7 +171,5 @@ func TestPostgresDeletarInexistente(t *testing.T) {
 
 	err := repo.Deletar(999999)
 
-	if err == nil {
-		t.Error("esperava erro ao deletar OS inexistente")
-	}
+	assert.Error(t, err, "esperava erro ao deletar OS inexistente")
 }

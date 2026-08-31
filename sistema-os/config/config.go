@@ -12,6 +12,12 @@ type Config struct {
 	PostgresDB       string
 	PostgresHost     string
 	PostgresPort     string
+
+	MySQLUser     string
+	MySQLPassword string
+	MySQLDB       string
+	MySQLHost     string
+	MySQLPort     string
 }
 
 func Carregar() Config {
@@ -31,5 +37,11 @@ func Carregar() Config {
 		PostgresDB:       os.Getenv("POSTGRES_DB"),
 		PostgresHost:     os.Getenv("POSTGRES_HOST"),
 		PostgresPort:     os.Getenv("POSTGRES_PORT"),
+
+		MySQLUser:     os.Getenv("MYSQL_USER"),
+		MySQLPassword: os.Getenv("MYSQL_PASSWORD"),
+		MySQLDB:       os.Getenv("MYSQL_DB"),
+		MySQLHost:     os.Getenv("MYSQL_HOST"),
+		MySQLPort:     os.Getenv("MYSQL_PORT"),
 	}
 }

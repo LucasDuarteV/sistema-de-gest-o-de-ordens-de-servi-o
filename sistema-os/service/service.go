@@ -9,11 +9,10 @@ import (
 )
 
 type OrdemServicoService struct {
-	Repositorio repository.BancoRepositorio
+	Repositorio repository.Repositorio
 }
 
 func (s OrdemServicoService) Salvar(ordem *models.OrdemServico) error {
-
 	if ordem == nil {
 		return fmt.Errorf("OS não pode ser nula")
 	}
@@ -57,7 +56,6 @@ func (s OrdemServicoService) Listar() ([]*models.OrdemServico, error) {
 }
 
 func (s OrdemServicoService) BuscarPorID(id int) (*models.OrdemServico, error) {
-
 	if id <= 0 {
 		return nil, fmt.Errorf("ID deve ser maior que zero")
 	}
@@ -70,8 +68,15 @@ func (s OrdemServicoService) BuscarPorID(id int) (*models.OrdemServico, error) {
 	return ordem, nil
 }
 
-func (s OrdemServicoService) Atualizar(ordem *models.OrdemServico) error {
+func (s OrdemServicoService) BuscarPorCliente(cliente string) ([]*models.OrdemServico, error) {
+	if cliente == "" {
+		return nil, fmt.Errorf("cliente é obrigatório")
+	}
 
+	return s.Repositorio.BuscarPorCliente(cliente)
+}
+
+func (s OrdemServicoService) Atualizar(ordem *models.OrdemServico) error {
 	if ordem == nil {
 		return fmt.Errorf("OS não pode ser nula")
 	}
@@ -120,7 +125,6 @@ func (s OrdemServicoService) Atualizar(ordem *models.OrdemServico) error {
 }
 
 func (s OrdemServicoService) Deletar(id int) error {
-
 	if id <= 0 {
 		return fmt.Errorf("ID deve ser maior que zero")
 	}
@@ -141,7 +145,6 @@ func (s OrdemServicoService) Deletar(id int) error {
 }
 
 func dataAnterior(data time.Time) bool {
-
 	hoje := time.Now()
 
 	dataHoje := time.Date(
